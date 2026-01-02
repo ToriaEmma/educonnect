@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { School, ArrowRight, Mail, Lock, Quote } from 'lucide-react';
+import { School, ArrowRight, Mail, Lock, Quote, User, GraduationCap, Building2, Users } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { motion } from 'framer-motion';
 
 export const Login = () => {
     const navigate = useNavigate();
+
+    const [role, setRole] = useState('student'); // student, teacher, school, parent
 
     return (
         <div className="min-h-screen bg-white flex relative overflow-hidden">
@@ -25,14 +28,42 @@ export const Login = () => {
                         <span className="text-xl font-bold text-slate-900">EduConnect</span>
                     </div>
 
-                    <div className="mb-10">
+                    <div className="mb-6">
                         <h1 className="text-4xl font-bold text-slate-900 mb-3">Bon retour !</h1>
                         <p className="text-slate-500 text-lg">
-                            Heureux de vous revoir. Entrez vos identifiants pour accéder à votre espace.
+                            Choisissez votre espace de connexion.
                         </p>
                     </div>
 
-                    <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); navigate('/student'); }}>
+                    {/* Role Selection */}
+                    <div className="grid grid-cols-4 gap-2 mb-8">
+                        {[
+                            { id: 'student', label: 'Élève', icon: User },
+                            { id: 'teacher', label: 'Prof', icon: GraduationCap },
+                            { id: 'school', label: 'École', icon: Building2 },
+                            { id: 'parent', label: 'Parent', icon: Users },
+                        ].map((item) => (
+                            <button
+                                key={item.id}
+                                onClick={() => setRole(item.id)}
+                                className={`p-2 rounded-xl border transition-all duration-200 flex flex-col items-center gap-1 ${role === item.id
+                                    ? 'bg-primary/5 border-primary text-primary ring-1 ring-primary ring-opacity-50'
+                                    : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50'
+                                    }`}
+                            >
+                                <item.icon size={18} className={role === item.id ? 'text-primary' : 'text-slate-400'} />
+                                <span className="font-semibold text-[10px] sm:text-xs uppercase tracking-wide">{item.label}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    <form className="space-y-6" onSubmit={(e) => {
+                        e.preventDefault();
+                        if (role === 'student') navigate('/student');
+                        else if (role === 'parent') navigate('/parent');
+                        else if (role === 'teacher') navigate('/teacher-dashboard');
+                        else if (role === 'school') navigate('/school');
+                    }}>
                         <Input
                             label="Email"
                             type="email"

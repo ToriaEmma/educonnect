@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     School, BookOpen, MessageSquare, LineChart, Search,
     Bell, LogOut, Calendar, TrendingUp, FileText,
-    CheckCircle, ArrowRight, Filter
+    CheckCircle, ArrowRight, Filter, PlusCircle
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -13,7 +13,12 @@ import { motion } from 'framer-motion';
 
 export const StudentDashboard = () => {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState('overview');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeTab = searchParams.get('tab') || 'overview';
+    const setActiveTab = (tab) => {
+        setSearchParams({ tab });
+    };
+
     const [searchQuery, setSearchQuery] = useState('');
 
     const teachers = [
@@ -26,6 +31,7 @@ export const StudentDashboard = () => {
         { id: 'overview', label: 'Tableau de bord', icon: LineChart },
         { id: 'teachers', label: 'Trouver un répétiteur', icon: Search },
         { id: 'subjects', label: 'Mes Matières', icon: BookOpen },
+        { id: 'qa', label: 'Q&A Scolaire', icon: MessageSquare }, // Added Q&A Tab
         { id: 'messages', label: 'Messagerie', icon: MessageSquare },
     ];
 
@@ -258,6 +264,155 @@ export const StudentDashboard = () => {
                                         <TeacherCard teacher={t} onSelect={() => navigate('/teacher/sample')} />
                                     </motion.div>
                                 ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'subjects' && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {[
+                                { name: "Mathématiques", progress: 75, next: "Devoir Mardi", color: "bg-blue-500", icon: "📐" },
+                                { name: "Physique-Chimie", progress: 60, next: "TP Jeudi", color: "bg-purple-500", icon: "🧪" },
+                                { name: "SVT", progress: 85, next: "Exposé le 12/11", color: "bg-green-500", icon: "🌿" },
+                                { name: "Français", progress: 90, next: "Lecture suivie", color: "bg-yellow-500", icon: "📚" },
+                                { name: "Anglais", progress: 50, next: "Verbes irréguliers", color: "bg-red-500", icon: "🇬🇧" },
+                                { name: "Histoire-Géo", progress: 70, next: "Carte à rendre", color: "bg-amber-600", icon: "🌍" },
+                            ].map((subject, idx) => (
+                                <motion.div
+                                    key={idx}
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                >
+                                    <Card className="h-full border-0 shadow-md ring-1 ring-slate-100 hover:shadow-xl transition-all duration-300 group cursor-pointer">
+                                        <div className="p-6">
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className={`w-14 h-14 rounded-2xl ${subject.color} bg-opacity-10 flex items-center justify-center text-3xl shadow-sm group-hover:scale-110 transition-transform`}>
+                                                    {subject.icon}
+                                                </div>
+                                                <Badge variant="outline" className="bg-slate-50">{subject.next}</Badge>
+                                            </div>
+
+                                            <h3 className="text-xl font-bold text-slate-900 mb-2">{subject.name}</h3>
+
+                                            <div className="space-y-2 mb-6">
+                                                <div className="flex justify-between text-sm font-bold">
+                                                    <span className="text-slate-500">Maîtrise</span>
+                                                    <span className={subject.progress < 60 ? "text-amber-500" : "text-green-500"}>{subject.progress}%</span>
+                                                </div>
+                                                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        whileInView={{ width: `${subject.progress}%` }}
+                                                        transition={{ duration: 1, delay: 0.2 }}
+                                                        className={`h-full ${subject.color}`}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <Button variant="outline" size="sm" className="w-full">
+                                                    Ressources
+                                                </Button>
+                                                <Button size="sm" className="w-full bg-slate-900 text-white hover:bg-slate-800 border-0">
+                                                    Trouver prof
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </Card>
+                                </motion.div>
+                            ))}
+
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.3 }}
+                                className="border-2 border-dashed border-slate-300 rounded-3xl flex flex-col items-center justify-center p-6 text-slate-400 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all cursor-pointer min-h-[250px]"
+                            >
+                                <div className="p-4 bg-slate-100 rounded-full mb-4 group-hover:bg-white transition-colors">
+                                    <PlusCircle size={32} />
+                                </div>
+                                <span className="font-bold">Ajouter une matière</span>
+                            </motion.div>
+                        </div>
+                    )}
+
+                    {activeTab === 'qa' && (
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                            <div className="lg:col-span-3 space-y-6">
+                                <Card className="bg-gradient-to-r from-primary to-indigo-600 text-white border-0 shadow-lg p-6">
+                                    <h2 className="text-2xl font-bold mb-2">Q&A Scolaire</h2>
+                                    <p className="opacity-90 mb-6">Posez vos questions, obtenez des réponses certifiées de professeurs et d'élèves.</p>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="Quelle est votre question ?"
+                                            className="w-full bg-white/20 backdrop-blur-md border border-white/30 rounded-xl px-5 py-3 text-white placeholder:text-white/70 focus:outline-none focus:bg-white/30 transition-all font-medium"
+                                        />
+                                        <Button className="absolute right-1 top-1 bg-white text-primary hover:bg-slate-100 border-0 h-auto py-2">
+                                            Poser
+                                        </Button>
+                                    </div>
+                                </Card>
+
+                                <div className="flex gap-2 overflow-x-auto pb-2">
+                                    {["Tout", "Mathématiques", "Physique", "SVT", "Français", "Anglais"].map((tag, i) => (
+                                        <Badge key={i} className={`cursor-pointer ${i === 0 ? 'bg-primary text-white' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                                            {tag}
+                                        </Badge>
+                                    ))}
+                                </div>
+
+                                <div className="space-y-4">
+                                    {[
+                                        { title: "Limite finie en l'infini", subject: "Mathématiques", answers: 5, time: "2h", verified: true },
+                                        { title: "Comment équilibrer une équation redox ?", subject: "Physique-Chimie", answers: 2, time: "45min", verified: false },
+                                        { title: "Analyse du poème 'Demain, dès l'aube'", subject: "Français", answers: 8, time: "Hier", verified: true },
+                                    ].map((q, idx) => (
+                                        <Card key={idx} className="hover:shadow-md transition-shadow cursor-pointer">
+                                            <div className="p-6">
+                                                <div className="flex justify-between items-start mb-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <Badge variant="outline" className="text-slate-500 border-slate-200">{q.subject}</Badge>
+                                                        <span className="text-xs text-slate-400">Il y a {q.time}</span>
+                                                    </div>
+                                                    {q.verified && (
+                                                        <Badge color="green" className="bg-emerald-50 text-emerald-600 border-emerald-100 flex items-center gap-1">
+                                                            <CheckCircle size={12} /> Résolu
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <h3 className="font-bold text-lg text-slate-900 mb-2">{q.title}</h3>
+                                                <div className="flex items-center justify-between mt-4">
+                                                    <div className="flex items-center gap-4 text-sm text-slate-500">
+                                                        <span className="flex items-center gap-1"><MessageSquare size={16} /> {q.answers} réponses</span>
+                                                    </div>
+                                                    <Button variant="ghost" size="sm" className="text-primary font-bold">Voir la discussion</Button>
+                                                </div>
+                                            </div>
+                                        </Card>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                <Card className="border-0 shadow-md ring-1 ring-slate-100">
+                                    <div className="p-6">
+                                        <h3 className="font-bold text-slate-900 mb-4">Top Contributeurs</h3>
+                                        <div className="space-y-4">
+                                            {["Dr. Koné", "M. Traoré", "Sophie L."].map((name, i) => (
+                                                <div key={i} className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 text-xs">{name.charAt(0)}</div>
+                                                    <div className="flex-grow">
+                                                        <div className="text-sm font-bold text-slate-900">{name}</div>
+                                                        <div className="text-xs text-slate-400">145 points</div>
+                                                    </div>
+                                                    {i === 0 && <Badge color="amber" className="bg-amber-100 text-amber-700">🥇</Badge>}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </Card>
                             </div>
                         </div>
                     )}

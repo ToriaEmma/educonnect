@@ -56,7 +56,13 @@ export const Register = () => {
                         ))}
                     </div>
 
-                    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); navigate('/student'); }}>
+                    <form className="space-y-5" onSubmit={(e) => {
+                        e.preventDefault();
+                        if (role === 'student') navigate('/student');
+                        else if (role === 'parent') navigate('/parent');
+                        else if (role === 'teacher') navigate('/teacher-dashboard');
+                        else if (role === 'school') navigate('/school');
+                    }}>
                         <div className="grid grid-cols-2 gap-4">
                             <Input label="Prénom" placeholder="Jean" icon={User} />
                             <Input label="Nom" placeholder="Dupont" />
