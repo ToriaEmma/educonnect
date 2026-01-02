@@ -1,14 +1,65 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { School, ArrowRight, Mail, Lock, Quote, User, GraduationCap, Building2, Users } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { School, ArrowRight, Mail, Lock, Quote, User, GraduationCap, Building2, Users, AlertCircle, CheckCircle } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { loginUser } from '../services/firebaseService';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { motion } from 'framer-motion';
 
 export const Login = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { login } = useAuth();
+    const [role, setRole] = useState('student');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [formData, setFormData] = useState({
+        email: '',
+        password: ''
+    });
 
-    const [role, setRole] = useState('student'); // student, teacher, school, parent
+    const successMessage = location.state?.message;
+
+    const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            const result = await loginUser(formData.email, formData.password);
+            
+            if (!result.userData) {
+                throw new Error('Utilisateur non trouvé');
+            }
+
+            login(result.userData, result.user.uid);
+
+            // Redirection basée sur le rôle
+            const userRole = result.userData.role;
+            if (userRole === 'student') navigate('/student');
+            else if (userRole === 'teacher') navigate('/teacher-dashboard');
+            else if (userRole === 'school') navigate('/school');
+            else if (userRole === 'parent') navigate('/parent');
+            else navigate('/');
+        } catch (err) {
+            console.error('Erreur connexion:', err);
+            setError('Email ou mot de passe incorrect');
+            
+            // Si utilisateur n'existe pas, rediriger vers inscription après 3 secondes
+            if (err.message.includes('user-not-found') || err.message.includes('invalid-credential')) {
+                setTimeout(() => {
+                    navigate('/register', { state: { message: 'Aucun compte trouvé. Veuillez vous inscrire.' } });
+                }, 3000);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-white flex relative overflow-hidden">
@@ -32,6 +83,20 @@ export const Login = () => {
                         </p>
                     </div>
 
+                    {successMessage && (
+                        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl flex items-start gap-3">
+                            <CheckCircle className="text-green-500 flex-shrink-0 mt-0.5" size={20} />
+                            <p className="text-sm text-green-700">{successMessage}</p>
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start gap-3">
+                            <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
+                            <p className="text-sm text-red-700">{error}</p>
+                        </div>
+                    )}
+
                     {/* Role Selection */}
                     <div className="grid grid-cols-4 gap-2 mb-8">
                         {[
@@ -54,18 +119,16 @@ export const Login = () => {
                         ))}
                     </div>
 
-                    <form className="space-y-6" onSubmit={(e) => {
-                        e.preventDefault();
-                        if (role === 'student') navigate('/student');
-                        else if (role === 'parent') navigate('/parent');
-                        else if (role === 'teacher') navigate('/teacher-dashboard');
-                        else if (role === 'school') navigate('/school');
-                    }}>
+                    <form className="space-y-6" onSubmit={handleLogin}>
                         <Input
                             label="Email"
                             type="email"
                             placeholder="exemple@educonnect.com"
                             icon={Mail}
+                            name="email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            required
                         />
 
                         <div className="relative">
@@ -74,6 +137,10 @@ export const Login = () => {
                                 type="password"
                                 placeholder="••••••••"
                                 icon={Lock}
+                                name="password"
+                                value={formData.password}
+                                onChange={handleChange}
+                                required
                             />
                             <div className="flex justify-end mt-2">
                                 <a href="#" className="text-sm font-medium text-primary hover:text-primary-dark transition-colors">
@@ -82,8 +149,8 @@ export const Login = () => {
                             </div>
                         </div>
 
-                        <Button type="submit" size="lg" className="w-full h-14 shadow-xl shadow-primary/20">
-                            Se connecter <ArrowRight size={20} className="ml-2" />
+                        <Button type="submit" size="lg" className="w-full h-12 shadow-xl shadow-primary/20" disabled={loading}>
+                            {loading ? 'Connexion...' : 'Se connecter'} {!loading && <ArrowRight size={18} className="ml-2" />}
                         </Button>
                     </form>
 
