@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
 import { HomePage } from './pages/HomePage';
 import { StudentDashboard } from './pages/StudentDashboard';
 import { ParentDashboard } from './pages/ParentDashboard';
@@ -20,8 +21,9 @@ import { TeacherQuizCreator } from './pages/TeacherQuizCreator';
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/method" element={<MethodPage />} />
         <Route path="/contact" element={<ContactPage />} />
@@ -41,5 +43,6 @@ export default function App() {
         <Route path="/school" element={<SchoolSpace />} />
       </Routes>
     </BrowserRouter>
+    </AuthProvider>
   );
 }
